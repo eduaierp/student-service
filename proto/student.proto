@@ -4,6 +4,7 @@ package student;
 option go_package = "./proto";
 
 service StudentService {
+    rpc GetAllStudents (EmptyRequest) returns (StudentList);
     rpc GetStudent (StudentRequest) returns (Student);
     rpc CreateStudent (Student) returns (StudentResponse);
     rpc UpdateStudent (Student) returns (StudentResponse);
@@ -13,7 +14,11 @@ service StudentService {
 message StudentRequest {
     string student_id = 1;
 }
+message EmptyRequest {}
 
+message StudentList {
+    repeated Student students = 1;
+}
 message StudentResponse {
     string message = 1;
 }

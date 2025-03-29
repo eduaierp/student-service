@@ -59,6 +59,49 @@ func CreateStudent(student *proto.Student) error {
 
 	return nil
 }
+// ✅ Get All Students
+func GetAllStudents() ([]*proto.Student, error) {
+    query := `SELECT * FROM students`
+    rows, err := DB.Query(query)
+    if err != nil {
+        return nil, fmt.Errorf("could not fetch students: %v", err)
+    }
+    defer rows.Close()
+
+    var students []*proto.Student
+    for rows.Next() {
+        var student proto.Student
+        var documents sql.NullString
+
+        err := rows.Scan(
+            &student.StudentId, &student.Name, &student.Dob, &student.Gender, &student.Nationality, &student.AadharNumber,
+            &student.ContactNumber, &student.Email, &student.PermanentAddress, &student.CurrentAddress,
+            &student.ParentGuardianName, &student.ParentGuardianContact, &student.PreviousInstitution,
+            &student.PreviousGrade, &student.MarksObtained, &student.PassingYear, &student.BoardName,
+            &student.TransferCertificate, &student.CourseAppliedFor, &student.Session,
+            &student.ClassSemester, &student.RegistrationNumber, &student.AdmissionCategory,
+            &documents, // ✅ Handle NULL values correctly
+            &student.PaymentMode, &student.ScholarshipEligibility, &student.LoanAssistance,
+        )
+        if err != nil {
+            log.Printf("Warning: skipping student due to error: %v", err)
+            continue
+        }
+
+        // Convert documents from JSON
+        student.Documents = []string{}
+        if documents.Valid {
+            err = json.Unmarshal([]byte(documents.String), &student.Documents)
+            if err != nil {
+                log.Printf("Warning: could not parse documents JSON: %v", err)
+            }
+        }
+
+        students = append(students, &student)
+    }
+
+    return students, nil
+}
 
 // Get Student by ID
 func GetStudentByID(studentID string) (*proto.Student, error) {

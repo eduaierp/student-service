@@ -19,16 +19,18 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	StudentService_GetStudent_FullMethodName    = "/student.StudentService/GetStudent"
-	StudentService_CreateStudent_FullMethodName = "/student.StudentService/CreateStudent"
-	StudentService_UpdateStudent_FullMethodName = "/student.StudentService/UpdateStudent"
-	StudentService_DeleteStudent_FullMethodName = "/student.StudentService/DeleteStudent"
+	StudentService_GetAllStudents_FullMethodName = "/student.StudentService/GetAllStudents"
+	StudentService_GetStudent_FullMethodName     = "/student.StudentService/GetStudent"
+	StudentService_CreateStudent_FullMethodName  = "/student.StudentService/CreateStudent"
+	StudentService_UpdateStudent_FullMethodName  = "/student.StudentService/UpdateStudent"
+	StudentService_DeleteStudent_FullMethodName  = "/student.StudentService/DeleteStudent"
 )
 
 // StudentServiceClient is the client API for StudentService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type StudentServiceClient interface {
+	GetAllStudents(ctx context.Context, in *EmptyRequest, opts ...grpc.CallOption) (*StudentList, error)
 	GetStudent(ctx context.Context, in *StudentRequest, opts ...grpc.CallOption) (*Student, error)
 	CreateStudent(ctx context.Context, in *Student, opts ...grpc.CallOption) (*StudentResponse, error)
 	UpdateStudent(ctx context.Context, in *Student, opts ...grpc.CallOption) (*StudentResponse, error)
@@ -41,6 +43,16 @@ type studentServiceClient struct {
 
 func NewStudentServiceClient(cc grpc.ClientConnInterface) StudentServiceClient {
 	return &studentServiceClient{cc}
+}
+
+func (c *studentServiceClient) GetAllStudents(ctx context.Context, in *EmptyRequest, opts ...grpc.CallOption) (*StudentList, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StudentList)
+	err := c.cc.Invoke(ctx, StudentService_GetAllStudents_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *studentServiceClient) GetStudent(ctx context.Context, in *StudentRequest, opts ...grpc.CallOption) (*Student, error) {
@@ -87,6 +99,7 @@ func (c *studentServiceClient) DeleteStudent(ctx context.Context, in *StudentReq
 // All implementations must embed UnimplementedStudentServiceServer
 // for forward compatibility.
 type StudentServiceServer interface {
+	GetAllStudents(context.Context, *EmptyRequest) (*StudentList, error)
 	GetStudent(context.Context, *StudentRequest) (*Student, error)
 	CreateStudent(context.Context, *Student) (*StudentResponse, error)
 	UpdateStudent(context.Context, *Student) (*StudentResponse, error)
@@ -101,6 +114,9 @@ type StudentServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedStudentServiceServer struct{}
 
+func (UnimplementedStudentServiceServer) GetAllStudents(context.Context, *EmptyRequest) (*StudentList, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllStudents not implemented")
+}
 func (UnimplementedStudentServiceServer) GetStudent(context.Context, *StudentRequest) (*Student, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStudent not implemented")
 }
@@ -132,6 +148,24 @@ func RegisterStudentServiceServer(s grpc.ServiceRegistrar, srv StudentServiceSer
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&StudentService_ServiceDesc, srv)
+}
+
+func _StudentService_GetAllStudents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EmptyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StudentServiceServer).GetAllStudents(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StudentService_GetAllStudents_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StudentServiceServer).GetAllStudents(ctx, req.(*EmptyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _StudentService_GetStudent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -213,6 +247,10 @@ var StudentService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "student.StudentService",
 	HandlerType: (*StudentServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetAllStudents",
+			Handler:    _StudentService_GetAllStudents_Handler,
+		},
 		{
 			MethodName: "GetStudent",
 			Handler:    _StudentService_GetStudent_Handler,

@@ -30,6 +30,15 @@ func (s *server) CreateStudent(ctx context.Context, req *proto.Student) (*proto.
 	message := fmt.Sprintf("Student %s created successfully!", req.Name)
 	return &proto.StudentResponse{Message: message}, nil
 }
+// ✅ Get All Students
+func (s *server) GetAllStudents(ctx context.Context, req *proto.EmptyRequest) (*proto.StudentList, error) {
+    students, err := db.GetAllStudents()
+    if err != nil {
+        return nil, fmt.Errorf("could not fetch students: %v", err)
+    }
+
+    return &proto.StudentList{Students: students}, nil
+}
 
 // ✅ Get Student
 func (s *server) GetStudent(ctx context.Context, req *proto.StudentRequest) (*proto.Student, error) {
