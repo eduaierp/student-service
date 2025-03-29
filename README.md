@@ -1,16 +1,10 @@
 
-
-# **Student Service (gRPC)**
+# **Student Service (gRPC)**  
 This project is a **gRPC-based Student Management Service** built using **Go**, **PostgreSQL**, and **Protocol Buffers**.
-
-## **📌 Features**
-- **CRUD operations** for managing students.
-- Uses **gRPC** for communication.
-- **PostgreSQL** as the database.
 
 ---
 
-# **📦 Project Structure**
+## **📦 Project Structure**
 ```
 ├── README.md
 ├── cmd
@@ -32,14 +26,14 @@ This project is a **gRPC-based Student Management Service** built using **Go**, 
 ---
 
 # **🛠️ Prerequisites**
-Ensure you have the following installed on your system:
+Ensure you have the following installed:
 
 | Dependency     | Windows                             | Mac                                |
 |---------------|------------------------------------|-----------------------------------|
 | **Go**        | [Download Go](https://go.dev/dl/) | `brew install go`                 |
 | **PostgreSQL**| [Download Postgres](https://www.postgresql.org/download/) | `brew install postgresql` |
 | **gRPC Tools**| Installed via `go mod tidy`       | Installed via `go mod tidy`       |
-| **Postman** (for API testing) | [Download Postman](https://www.postman.com/downloads/) | [Download Postman](https://www.postman.com/downloads/) |
+| **Postman**   | [Download](https://www.postman.com/downloads/) | [Download](https://www.postman.com/downloads/) |
 
 ---
 
@@ -51,22 +45,13 @@ cd student-service
 
 ---
 
-# **📌 Step 2: Set Up PostgreSQL**
-
+# **📌 Step 2: Install & Start PostgreSQL**
 ## **🔹 MacOS Setup**
-1. Install PostgreSQL:
-   ```sh
-   brew install postgresql
-   ```
-2. Start PostgreSQL:
-   ```sh
-   brew services start postgresql
-   ```
-3. Create a database:
-   ```sh
-   createdb eduaierp
-   ```
-
+```sh
+brew install postgresql
+brew services start postgresql
+createdb eduaierp
+```
 ## **🔹 Windows Setup**
 1. Download and install **PostgreSQL** from [here](https://www.postgresql.org/download/).
 2. Open **pgAdmin** or **Command Prompt** and run:
@@ -76,28 +61,30 @@ cd student-service
 
 ---
 
-# **📌 Step 3: Set Up Environment Variables**
-Create an `.env` file in the root directory:
+# **📌 Step 3: Create PostgreSQL User & Grant Permissions**
+### **🔹 Open PostgreSQL CLI (`psql`)**
 ```sh
-touch .env
+psql -U postgres -d eduaierp
 ```
-Edit the `.env` file:
+### **🔹 Create a new user**
+```sql
+CREATE USER ravikigf WITH PASSWORD 'root';
+```
+### **🔹 Grant permissions**
+```sql
+ALTER DATABASE eduaierp OWNER TO ravikigf;
+GRANT ALL PRIVILEGES ON DATABASE eduaierp TO ravikigf;
+```
+### **🔹 Connect as the new user**
 ```sh
-nano .env
+psql -U ravikigf -d eduaierp
 ```
-Add the following:
-```
-DATABASE_URL=postgres://ravikigf:root@localhost:5432/eduaierp
-```
-**For Windows (Command Prompt)**
-```sh
-set DATABASE_URL=postgres://ravikigf:root@localhost:5432/eduaierp
-```
+Now, you are logged in as `ravikigf`.
 
 ---
 
 # **📌 Step 4: Set Up Database Schema**
-Launch `psql` and execute:
+Run the following SQL commands:
 ```sql
 CREATE TABLE students (
     student_id TEXT PRIMARY KEY DEFAULT 'S' || nextval('students_student_id_seq'),
@@ -118,21 +105,41 @@ CREATE TABLE students (
     passing_year TEXT,
     board_name TEXT
 );
-
 ALTER TABLE students OWNER TO ravikigf;
 GRANT ALL PRIVILEGES ON TABLE students TO ravikigf;
+GRANT USAGE, SELECT, UPDATE, INSERT, DELETE ON SEQUENCE students_student_id_seq TO ravikigf;
 ```
 
 ---
 
-# **📌 Step 5: Install Dependencies**
+# **📌 Step 5: Set Up Environment Variables**
+Create an `.env` file in the root directory:
+```sh
+touch .env
+```
+Edit the `.env` file:
+```sh
+nano .env
+```
+Add:
+```
+DATABASE_URL=postgres://ravikigf:root@localhost:5432/eduaierp
+```
+**For Windows (Command Prompt)**
+```sh
+set DATABASE_URL=postgres://ravikigf:root@localhost:5432/eduaierp
+```
+
+---
+
+# **📌 Step 6: Install Dependencies**
 ```sh
 go mod tidy
 ```
 
 ---
 
-# **📌 Step 6: Run the gRPC Server**
+# **📌 Step 7: Run the gRPC Server**
 ```sh
 go run cmd/main.go
 ```
@@ -143,10 +150,10 @@ gRPC server listening on :50051
 
 ---
 
-# **📌 Step 7: Test API with Postman**
+# **📌 Step 8: Test API with Postman**
 1. Open **Postman**.
 2. Click **"New" → "gRPC Request"**.
-3. In the **server URL**, enter:
+3. Enter server URL:
    ```
    localhost:50051
    ```
@@ -161,8 +168,8 @@ gRPC server listening on :50051
 
 ---
 
-# **📌 Step 8: Stop the Server**
-To stop the server, press:
+# **📌 Step 9: Stop the Server**
+To stop the server:
 ```sh
 CTRL + C
 ```
@@ -175,20 +182,17 @@ CTRL + C
   ```sh
   pg_ctl status
   ```
-- Restart the service:
+- Restart:
   ```sh
   brew services restart postgresql  # Mac
   ```
 
 ### **🔹 Port Already in Use**
-If you get an error that port **50051** is in use, change the port in `server.go`:
+If **50051** is in use, update `server.go`:
 ```go
 lis, err := net.Listen("tcp", ":50052")
 ```
-Then, re-run the server:
+Then, restart:
 ```sh
 go run cmd/main.go
 ```
-
----
-
