@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"log"
 	"net"
-
-	"student-service/proto" // Ensure the import path is correct for your project structure
+	"os"
+	"os/signal"
+	"student-service/internal/db"
+	"student-service/proto"
+	"syscall"
 
 	"google.golang.org/grpc"
 )
@@ -16,60 +19,55 @@ type server struct {
 	proto.UnimplementedStudentServiceServer
 }
 
-// GetStudent method to fetch student details
+// GetStudent method to fetch student details from the database
 func (s *server) GetStudent(ctx context.Context, req *proto.StudentRequest) (*proto.Student, error) {
-	// In a real-world app, you would fetch data from a database or another service here.
-	// For now, we'll return hardcoded data based on the student_id.
-
-	// Just a sample to match the student_id, you can replace it with real logic.
-	if req.GetStudentId() == "" {
-		return nil, fmt.Errorf("student ID is required")
+	student, err := db.GetStudentByID(req.GetStudentId())
+	if err != nil {
+		return nil, fmt.Errorf("could not fetch student with ID %v: %v", req.GetStudentId(), err)
 	}
 
-	// Simulating student data response
-	student := &proto.Student{
-		StudentId:              req.GetStudentId(),
-		Name:                   "John Doe",
-		Dob:                    "2000-01-01",
-		Gender:                 "Male",
-		Nationality:            "Indian",
-		AadharNumber:           "1234-5678-9012",
-		ContactNumber:          "+91-1234567890",
-		Email:                  "johndoe@example.com",
-		PermanentAddress:       "1234, Some Street, City, State, 123456",
-		CurrentAddress:         "5678, Another Street, City, State, 123456",
-		ParentGuardianName:     "Jane Doe",
-		ParentGuardianContact:  "+91-9876543210",
-		PreviousInstitution:    "ABC High School",
-		PreviousGrade:          "12th Grade",
-		MarksObtained:          "85%",
-		PassingYear:            "2018",
-		BoardName:              "CBSE",
-		TransferCertificate:    "None",
-		CourseAppliedFor:       "Computer Science",
-		Session:                "2025",
-		ClassSemester:          "1st Semester",
-		RegistrationNumber:     "CS123456",
-		AdmissionCategory:      "General",
-		Documents:              []string{"birth_certificate", "12th_marksheet", "transfer_certificate"},
-		PaymentMode:            "Online",
-		ScholarshipEligibility: "Yes",
-		LoanAssistance:         "No",
-	}
-
-	return student, nil
+	// Return student data as gRPC response
+	return &proto.Student{
+		StudentId:              student.StudentID,
+		Name:                   student.Name,
+		Dob:                    student.Dob,
+		Gender:                 student.Gender,
+		Nationality:            student.Nationality,
+		AadharNumber:           student.AadharNumber,
+		ContactNumber:          student.ContactNumber,
+		Email:                  student.Email,
+		PermanentAddress:       student.PermanentAddress,
+		CurrentAddress:         student.CurrentAddress,
+		ParentGuardianName:     student.ParentGuardianName,
+		ParentGuardianContact:  student.ParentGuardianContact,
+		PreviousInstitution:    student.PreviousInstitution,
+		PreviousGrade:          student.PreviousGrade,
+		MarksObtained:          student.MarksObtained,
+		PassingYear:            student.PassingYear,
+		BoardName:              student.BoardName,
+		TransferCertificate:    student.TransferCertificate,
+		CourseAppliedFor:       student.CourseAppliedFor,
+		Session:                student.Session,
+		ClassSemester:          student.ClassSemester,
+		RegistrationNumber:     student.RegistrationNumber,
+		AdmissionCategory:      student.AdmissionCategory,
+		Documents:              student.Documents,
+		PaymentMode:            student.PaymentMode,
+		ScholarshipEligibility: student.ScholarshipEligibility,
+		LoanAssistance:         student.LoanAssistance,
+	}, nil
 }
 
-// NewServer initializes and returns a new gRPC server
+// NewServer initializes a new gRPC server
 func NewServer() *grpc.Server {
 	s := grpc.NewServer()
-	proto.RegisterStudentServiceServer(s, &server{}) // Register the service
+	proto.RegisterStudentServiceServer(s, &server{}) 
 	return s
 }
 
-// StartServer starts the gRPC server on the given port
+// StartServer starts the gRPC server
 func StartServer() {
-	port := ":50051" // Choose your preferred port
+	port := ":50051"
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
@@ -77,8 +75,17 @@ func StartServer() {
 
 	s := NewServer()
 
-	log.Printf("gRPC server listening on %v", port)
-	if err := s.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
-	}
+	go func() {
+		log.Printf("gRPC server listening on %v", port)
+		if err := s.Serve(lis); err != nil {
+			log.Fatalf("failed to serve: %v", err)
+		}
+	}()
+
+	// Handle graceful shutdown
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Println("Shutting down server...")
+	s.GracefulStop()
 }

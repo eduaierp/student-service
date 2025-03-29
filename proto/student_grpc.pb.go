@@ -4,8 +4,6 @@
 // - protoc             v5.29.3
 // source: proto/student.proto
 
-// Define the package name
-
 package proto
 
 import (
@@ -27,10 +25,7 @@ const (
 // StudentServiceClient is the client API for StudentService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-//
-// Define the service for student information
 type StudentServiceClient interface {
-	// Define the GetStudent RPC method
 	GetStudent(ctx context.Context, in *StudentRequest, opts ...grpc.CallOption) (*Student, error)
 }
 
@@ -55,10 +50,7 @@ func (c *studentServiceClient) GetStudent(ctx context.Context, in *StudentReques
 // StudentServiceServer is the server API for StudentService service.
 // All implementations must embed UnimplementedStudentServiceServer
 // for forward compatibility.
-//
-// Define the service for student information
 type StudentServiceServer interface {
-	// Define the GetStudent RPC method
 	GetStudent(context.Context, *StudentRequest) (*Student, error)
 	mustEmbedUnimplementedStudentServiceServer()
 }

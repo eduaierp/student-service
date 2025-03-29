@@ -1,51 +1,43 @@
 syntax = "proto3";
 
-// Define the package name
 package student;
 
-// Specify the Go package for the generated code
 option go_package = "./proto";
 
-// Define the service for student information
 service StudentService {
-    // Define the GetStudent RPC method
     rpc GetStudent (StudentRequest) returns (Student);
 }
 
-// Define the request message for GetStudent
 message StudentRequest {
-    // A field to specify the student ID
     string student_id = 1;
 }
 
-// Define the response message for GetStudent
 message Student {
-    // Define fields for student details
-    string student_id = 1;              // Unique student ID
-    string name = 2;                    // Student's name
-    string dob = 3;                     // Date of Birth
-    string gender = 4;                  // Gender
-    string nationality = 5;             // Nationality
-    string aadhar_number = 6;           // Aadhar or Social Security Number
-    string contact_number = 7;          // Contact number
-    string email = 8;                   // Email address
-    string permanent_address = 9;       // Permanent address
-    string current_address = 10;        // Current address
-    string parent_guardian_name = 11;   // Parent/Guardian's name
-    string parent_guardian_contact = 12; // Parent/Guardian's contact number
-    string previous_institution = 13;   // Previous institution name
-    string previous_grade = 14;         // Previous grade/qualification
-    string marks_obtained = 15;         // Marks/grades obtained
-    string passing_year = 16;           // Passing year
-    string board_name = 17;             // Board name (e.g., CBSE, ICSE)
-    string transfer_certificate = 18;   // Transfer certificate
-    string course_applied_for = 19;     // Course applied for
-    string session = 20;                // Academic session
-    string class_semester = 21;         // Class/semester
-    string registration_number = 22;    // Registration number
-    string admission_category = 23;     // Admission category (e.g., General, Reserved)
-    repeated string documents = 24;     // List of required documents
-    string payment_mode = 25;           // Payment mode (e.g., Online, Offline)
-    string scholarship_eligibility = 26; // Scholarship eligibility
-    string loan_assistance = 27;        // Loan assistance
+    string student_id = 1;
+    string name = 2;
+    string dob = 3;
+    string gender = 4;
+    string nationality = 5;
+    string aadhar_number = 6;
+    string contact_number = 7;
+    string email = 8;
+    string permanent_address = 9;
+    string current_address = 10;
+    string parent_guardian_name = 11;
+    string parent_guardian_contact = 12;
+    string previous_institution = 13;
+    string previous_grade = 14;
+    string marks_obtained = 15;
+    string passing_year = 16;
+    string board_name = 17;
+    string transfer_certificate = 18;
+    string course_applied_for = 19;
+    string session = 20;
+    string class_semester = 21;
+    string registration_number = 22;
+    string admission_category = 23;
+    repeated string documents = 24;
+    string payment_mode = 25;
+    string scholarship_eligibility = 26;
+    string loan_assistance = 27;
 }
